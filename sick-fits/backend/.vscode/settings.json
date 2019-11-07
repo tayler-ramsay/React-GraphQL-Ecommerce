@@ -18,6 +18,7 @@
     "itemcreate",
     "itemdelete",
     "itemupdate",
-    "permissionsupdate"
+    "permissionsupdate",
+    "signin"
   ]
 }

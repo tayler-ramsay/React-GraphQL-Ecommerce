@@ -44,10 +44,7 @@ const CartStyles = styled.div`
   }
   div {
     margin-left: 3px;
-    
-    
-    
   }
-`;x
+`;
 
 export default CartStyles;
