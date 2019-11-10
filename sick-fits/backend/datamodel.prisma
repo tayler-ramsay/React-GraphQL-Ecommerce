@@ -18,6 +18,7 @@ type User {
   permissions: [Permission] @scalarList(strategy: RELATION)
   cart: [CartItem!]!
 }
+
 type Item {
   id: ID! @id
   title: String!
@@ -33,4 +34,24 @@ type CartItem {
   quantity: Int! @default(value: 1)
   item: Item # relationship to item
   user: User! # relationship to item
+}
+
+type OrderItem {
+  id: ID! @id
+  title: String!
+  description: String!
+  image: String
+  largeImage: String
+  price: Int!
+  quantity: Int! @default(value: 1)
+  user: User!
+}
+
+type Order {
+  id: ID! @id
+  items: [OrderItem!]!
+  total: Int!
+  user: User!
+  charge: String!
+
 }

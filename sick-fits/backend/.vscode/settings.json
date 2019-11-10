@@ -19,6 +19,7 @@
     "itemdelete",
     "itemupdate",
     "permissionsupdate",
-    "signin"
+    "signin",
+    "signout"
   ]
 }
