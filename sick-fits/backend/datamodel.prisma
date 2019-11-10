@@ -30,7 +30,7 @@ type Item {
 
 type CartItem {
   id: ID! @id
-  quantity: Int! @defautl(value: 1)
-  item: Item! # relationship to item
+  quantity: Int! @default(value: 1)
+  item: Item # relationship to item
   user: User! # relationship to item
 }
