@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { randomBytes } = require("crypto");
+const stripe = require("../stripe");
 const { transport, makeANiceEmail } = require("../mail");
 const { promisify } = require("util");
 const { hasPermission } = require("../utils");
@@ -127,8 +128,8 @@ const Mutations = {
       to: user.email,
       subject: "Your password reset token",
       html: makeANiceEmail(
-        `Your password reset token is here! 
-        \n\n 
+        `Your password reset token is here!
+        \n\n
         <a href="${process.env.FRONTEND_URL}/reset?resetToken=${resetToken}">
         Click Here to Reset
         </a>`
@@ -286,16 +287,57 @@ const Mutations = {
       cart {
         id
         quantity
-        item {title price id description image}
+        item {
+          title
+          price
+          id
+          description
+          image
+          largeImage
+        }
       }
     }`
     );
     // Recalculate the total for the price
-    // Create the stripe charge
+    const amount = user.cart.reduce(
+      (tally, cartItem) => tally + cartItem.item.price * cartItem.quantity,
+      0
+    );
+    console.log(`going to charge for ${amount}`);
+    // Create the stripe charge(turn token into money$$$)
+    const charge = await stripe.charges.create({
+      amount,
+      currency: "USD",
+      source: args.token
+    });
     // Covert the CartItems to OrderItems
+    const orderItems = user.cart.map(cartItem => {
+      const orderItem = {
+        ...cartItem.item,
+        quantity: cartItem.quantity,
+        user: {
+          connect: { id: userId }
+        }
+      };
+      delete orderItem.id;
+      return orderItem;
+    });
     // Create the Order
+    const order = await ctx.db.mutation.createOrder({
+      data: {
+        total: charge.amount,
+        charge: charge.id,
+        items: { create: orderItems },
+        user: { connect: { id: userId } }
+      }
+    });
     // Clean up - clear the users cart, delete cart items
+    const cartItemIds = user.cart.map(cartItem => cartItem.id);
+    await ctx.db.mutation.deleteManyCartItems({
+      where: { id_in: cartItemIds }
+    });
     // Return the Order to the client
+    return order;
   }
 };
 
